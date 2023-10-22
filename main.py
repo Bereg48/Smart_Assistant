@@ -2,7 +2,7 @@ from termcolor import colored
 from colorama import init, Fore, Back, Style
 
 from src.news import get_news
-from src.search import wiki_search, google_search, random_article
+from src.search import wiki_search, google_search, random_article, get_page_url, search_two, get_weather
 from src.speak import speak
 
 
@@ -28,9 +28,30 @@ def smart_assistant():
         print(colored(frame_middle, "cyan"))
         print(colored(frame_bottom, "cyan"))
 
-        if user_input.startswith('Поиск в Википедии: [запрос]'):
+
+
+        if user_input.startswith('Поиск в Википедии: '):
             query = user_input.split(':')[1].strip()
             result = wiki_search(query)
+            print(result)
+            speak(result)
+
+        elif user_input.startswith('погода на сегодня для города: '):
+            city = user_input.split(':')[1].strip()
+            result = get_weather(city)
+            print(result)
+            speak(result)
+
+
+        elif user_input.startswith('Поиск в Википедии для два: '):
+            keyword = user_input.split(':')[1].strip()
+            result = search_two(keyword)
+            print(result)
+            speak(result)
+
+        elif user_input.startswith('Поиск в Википедии для: '):
+            title = user_input.split(':')[1].strip()
+            result = get_page_url(title)
             print(result)
             speak(result)
 
