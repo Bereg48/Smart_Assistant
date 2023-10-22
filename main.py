@@ -2,7 +2,8 @@ from termcolor import colored
 from colorama import init, Fore, Back, Style
 
 from src.news import get_news
-from src.search import wiki_search, google_search, random_article, get_page_url, search_two, get_weather
+from src.search import wiki_search, google_search, random_article, get_page_url, get_weather, \
+    search_duckduckgo, search_yahoo
 from src.speak import speak
 
 
@@ -13,9 +14,13 @@ def smart_assistant():
     while True:
         user_input = input(Fore.YELLOW +
                            "1 - Поиск в Википедии: [запрос];\n"
+                           "1.1 - Получить URL-адреса с Википедии: [запрос];\n"
+                           "1.2 - Случайная статья с Википедии;\n"
                            "2 - Поиск в Google: [запрос];\n"
-                           "3 - Случайная статья;\n"
-                           "4 - узнать 5 последних новостей;\n" + Back.BLACK +
+                           "3 - Поиск в Yahoo: [запрос];\n"
+                           "4 - Поиск в Duckduckgo: [запрос];\n"
+                           "5 - узнать 5 последних новостей;\n" + Back.BLACK +
+                           "6 - погода на сегодня для города: [запрос];\n"
                            "выход - для завершения введите выход;\n"
                            )
 
@@ -28,32 +33,23 @@ def smart_assistant():
         print(colored(frame_middle, "cyan"))
         print(colored(frame_bottom, "cyan"))
 
-
-
         if user_input.startswith('Поиск в Википедии: '):
             query = user_input.split(':')[1].strip()
             result = wiki_search(query)
             print(result)
             speak(result)
 
-        elif user_input.startswith('погода на сегодня для города: '):
-            city = user_input.split(':')[1].strip()
-            result = get_weather(city)
-            print(result)
-            speak(result)
-
-
-        elif user_input.startswith('Поиск в Википедии для два: '):
-            keyword = user_input.split(':')[1].strip()
-            result = search_two(keyword)
-            print(result)
-            speak(result)
-
-        elif user_input.startswith('Поиск в Википедии для: '):
+        elif user_input.startswith('Получить URL-адреса с Википедии: '):
             title = user_input.split(':')[1].strip()
             result = get_page_url(title)
             print(result)
             speak(result)
+
+        elif user_input.lower() == 'Случайная статья с Википедии':
+            title, summary = random_article()
+            print(f"Случайная статья с Википедии: {title}")
+            print(summary)
+            speak(f"Случайная статья с Википедии: {title}. {summary}")
 
         elif user_input.startswith('Поиск в Google:'):
             query = user_input.split(':')[1].strip()
@@ -63,14 +59,26 @@ def smart_assistant():
                 print(f"Результат #{i + 1}: {url}")
                 speak(f"Результат #{i + 1}: {url}")
 
-        elif user_input.lower() == 'Случайная статья':
-            title, summary = random_article()
-            print(f"Случайная статья: {title}")
-            print(summary)
-            speak(f"Случайная статья: {title}. {summary}")
+        elif user_input.startswith('Поиск в Yahoo: '):
+            query = user_input.split(':')[1].strip()
+            result = search_yahoo(query)
+            print(result)
+            speak(result)
+
+        elif user_input.startswith('Поиск в Duckduckgo: '):
+            query = user_input.split(':')[1].strip()
+            result = search_duckduckgo(query)
+            print(result)
+            speak(result)
 
         elif user_input.lower() == 'узнать 5 последних новостей':
             get_news()
+
+        elif user_input.startswith('погода на сегодня для города: '):
+            city = user_input.split(':')[1].strip()
+            result = get_weather(city)
+            print(result)
+            speak(result)
 
         elif user_input.lower() == 'выход':
             speak("До свидания!")

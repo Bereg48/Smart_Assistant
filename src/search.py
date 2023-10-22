@@ -1,49 +1,11 @@
-import requests
 import wikipediaapi
+from bs4 import BeautifulSoup
 from googlesearch import search
 import wikipedia
+import requests
+from urllib.parse import quote
 
 API_KEY = 'fd893fffc7e85e04ad69106ba6ab0383'
-def get_weather(city):
-    """
-    Эта функция позволяет получить текущую погоду в указанном городе.
-    Она принимает аргумент city - название города.
-    """
-    try:
-        response = requests.get(f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}")
-        weather = response.json()
-
-        if response.status_code != 200:
-            return f"Ошибка при получении погоды: {weather['message']}"
-
-        description = weather["weather"][0]["description"]
-        temperature = weather["main"]["temp"]
-        return f"Погода в городе {city}: {description}, температура: {temperature} градусов по Цельсию"
-    except Exception as e:
-        return "Ошибка при получении погоды: " + str(e)
-
-
-def search_two(keyword):
-    """Эта функция используется для поиска статей на Википедии по заданному ключевому слову."""
-    try:
-        results = wikipedia.search(keyword)
-        return results
-    except wikipedia.exceptions.HTTPTimeoutError:
-        return "Возникла ошибка при выполнении поиска"
-    except Exception as e:
-        return "Ошибка при выполнении поиска: " + str(e)
-
-
-def get_page_url(title):
-    """Эта функция используется для получения URL-адреса статьи на Википедии по заданному заголовку."""
-    try:
-        page = wikipedia.page(title)
-        page_url = page.url
-        return page_url
-    except wikipedia.exceptions.PageError:
-        return "Страница с таким заголовком не найдена"
-    except Exception as e:
-        return "Ошибка при получении URL-адреса статьи: " + str(e)
 
 
 def wiki_search(query):
@@ -67,6 +29,18 @@ def wiki_search(query):
             return "Страница не найдена"
     except Exception as e:
         return "Ошибка при выполнении запроса: " + str(e)
+
+
+def get_page_url(title):
+    """Эта функция используется для получения URL-адреса статьи на Википедии по заданному заголовку."""
+    try:
+        page = wikipedia.page(title)
+        page_url = page.url
+        return page_url
+    except wikipedia.exceptions.PageError:
+        return "Страница с таким заголовком не найдена"
+    except Exception as e:
+        return "Ошибка при получении URL-адреса статьи: " + str(e)
 
 
 def random_article():
@@ -97,3 +71,62 @@ def google_search(query, num_results=5):
             return results
     except Exception as e:
         return "Ошибка при выполнении поиска в Google: " + str(e)
+
+
+def search_yahoo(query):
+    url = f"https://search.yahoo.com/search?p={query}"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36"
+    }
+    response = requests.get(url, headers=headers)
+
+    soup = BeautifulSoup(response.content, "html.parser")
+    results = soup.find_all("div", {"class": "algo"})
+
+    search_results = []
+    for result in results:
+        title = result.find("h3").text
+        link = result.find("a")["href"]
+        search_results.append({"title": title, "link": link})
+
+    return search_results
+
+
+def search_duckduckgo(query):
+    """Метод search, принимает запрос пользователя и выполняет поиск на основе DuckDuckGo API.
+    Отправляет запрос на поиск и возвращает краткое описание результата поиска и ссылку
+    для получения более подробной информации."""
+    try:
+        encoded_query = quote(query)
+        response = requests.get(f"https://api.duckduckgo.com",
+                                params={"q": encoded_query,
+                                        "format": "json"})
+        results = response.json()
+
+        if response.status_code != 200:
+            return f"Ошибка при поиске: {results['message']}"
+
+        abstract = results["AbstractText"]
+        url = results["AbstractURL"]
+
+        return f"{abstract}\n\nПодробнее: {url}"
+    except Exception as e:
+        return "Ошибка при поиске: " + str(e)
+
+
+def get_weather(city):
+    """Мето get_weather использует API погоды для получения текущей погоды в указанном городе.
+    Она принимает аргумент `city`, который является названием города."""
+    try:
+        response = requests.get(
+            f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric")
+        weather = response.json()
+
+        if response.status_code != 200:
+            return f"Ошибка при получении погоды: {weather['message']}"
+
+        description = weather["weather"][0]["description"]
+        temperature = weather["main"]["temp"]
+        return f"Погода в городе {city}: {description}, температура: {temperature} градусов по Цельсию"
+    except Exception as e:
+        return "Ошибка при получении погоды: " + str(e)
